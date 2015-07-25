@@ -1,2 +1,2 @@
 # pysweat
-Endurance sports data transformation and enrichment primitives
+Endurance sports data transformation and enrichment functions
