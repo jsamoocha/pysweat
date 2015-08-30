@@ -1,8 +1,9 @@
 from pymongo import UpdateOne
+import pandas as pd
 
 
 def load_activities(mongo, **query):
-    return mongo.db.activities.find(query)
+    return pd.DataFrame(list(mongo.db.activities.find(query)))
 
 
 def save_activities(mongo, activities_df):

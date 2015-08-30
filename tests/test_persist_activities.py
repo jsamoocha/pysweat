@@ -11,10 +11,11 @@ class ActivityPersistenceTest(unittest.TestCase):
         mongo_mock.db.activities.find.return_value = iter([{'id': '123', 'strava_id': 456, 'average_speed': 20.1},
                                                            {'id': '124', 'strava_id': 457, 'average_speed': 30.1}])
 
-        result = list(load_activities(mongo_mock))
-        self.assertEqual(len(result), 2)
-        self.assertIn({'id': '123', 'strava_id': 456, 'average_speed': 20.1}, result)
-        self.assertIn({'id': '124', 'strava_id': 457, 'average_speed': 30.1}, result)
+        result = load_activities(mongo_mock)
+        self.assertIs(type(result), pd.DataFrame)
+        self.assertEqual(list(result.id.values), ['123', '124'])
+        self.assertEqual(list(result.strava_id.values), [456, 457])
+        self.assertEqual(list(result.average_speed.values), [20.1, 30.1])
 
     @patch('pymongo.MongoClient')
     def test_load_activities_with_simple_filter(self, mongo_mock):
