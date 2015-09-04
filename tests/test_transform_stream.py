@@ -31,3 +31,14 @@ class StreamTransformationTest(unittest.TestCase):
         transform_result = streams.smooth(test_df, smooth_colname='y')
 
         self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'y_smooth'])
+
+    def test_derivative(self):
+        """Should compute derivative for default column"""
+        test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 5, 6]})
+
+        transform_result = streams.derivative(test_df)
+
+        self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'dx_dt'])
+        self.assertTrue(np.isnan(transform_result.dx_dt[0]))
+        self.assertEqual(transform_result.dx_dt[1], 1.0)
+        self.assertEqual(transform_result.dx_dt[2], 1.0)
