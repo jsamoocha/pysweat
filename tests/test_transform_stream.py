@@ -42,3 +42,25 @@ class StreamTransformationTest(unittest.TestCase):
         self.assertTrue(np.isnan(transform_result.dx_dt[0]))
         self.assertEqual(transform_result.dx_dt[1], 1.0)
         self.assertEqual(transform_result.dx_dt[2], 1.0)
+
+    def test_derivative_alternative_column_name(self):
+        """Should compute derivative of given column name"""
+        test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 6, 8]})
+
+        transform_result = streams.derivative(test_df, derivative_colname='y')
+
+        self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'dy_dt'])
+        self.assertTrue(np.isnan(transform_result.dy_dt[0]))
+        self.assertEqual(transform_result.dy_dt[1], 2.0)
+        self.assertEqual(transform_result.dy_dt[2], 2.0)
+
+    def test_derivative_nonlinear_index(self):
+        """Should take into account dt in index when computing derivative"""
+        test_df = pd.DataFrame({'x': [1, 2, 3]}, index=[1, 2, 4])
+
+        transform_result = streams.derivative(test_df)
+
+        self.assertEqual(list(transform_result.columns.values), ['x', 'dx_dt'])
+        self.assertTrue(np.isnan(transform_result.dx_dt[1]))
+        self.assertEqual(transform_result.dx_dt[2], 1.0)
+        self.assertEqual(transform_result.dx_dt[4], 0.5)

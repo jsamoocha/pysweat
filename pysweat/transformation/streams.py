@@ -1,5 +1,7 @@
+from __future__ import division
 import pandas as pd
 import numpy as np
+
 
 def smooth(stream_df, window_size=3, smooth_colname='x'):
     stream_df[smooth_colname + '_smooth'] = pd.Series(pd.rolling_mean(stream_df[smooth_colname], center=True,
