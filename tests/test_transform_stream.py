@@ -2,6 +2,7 @@ import unittest
 import numpy as np
 import pandas as pd
 import pysweat.transformation.streams as streams
+from pysweat.transformation.similarities import cosine_similarity
 
 class StreamTransformationTest(unittest.TestCase):
     def test_smooth(self):
@@ -64,3 +65,15 @@ class StreamTransformationTest(unittest.TestCase):
         self.assertTrue(np.isnan(transform_result.dx_dt[1]))
         self.assertEqual(transform_result.dx_dt[2], 1.0)
         self.assertEqual(transform_result.dx_dt[4], 0.5)
+
+    def test_rolling_similarity(self):
+        """Should compute similarity between the sequence of vectors defined by the given columns, and given
+        similarity function"""
+        test_df = pd.DataFrame({'dx_dt': [1, 1, 1], 'dy_dt': [1, 1, -1]})
+
+        transform_result = streams.rolling_similarity(test_df, cosine_similarity, 'dx_dt', 'dy_dt')
+
+        self.assertEqual(list(transform_result.columns.values), ['dx_dt', 'dy_dt', 'cosine_similarity_dx_dt_dy_dt'])
+        self.assertTrue(np.isnan(transform_result.cosine_similarity_dx_dt_dy_dt[0]))
+        self.assertAlmostEqual(transform_result.cosine_similarity_dx_dt_dy_dt[1], 1.0, 9)
+        self.assertAlmostEqual(transform_result.cosine_similarity_dx_dt_dy_dt[2], 0, 9)
