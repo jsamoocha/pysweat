@@ -1,5 +1,5 @@
 import unittest
-from pysweat.transformation.similarities import cosine_similarity
+from pysweat.transformation.similarities import cosine_similarity, cosine_to_deviation
 
 
 class SimilarityTransformationTest(unittest.TestCase):
@@ -30,3 +30,10 @@ class SimilarityTransformationTest(unittest.TestCase):
         v2 = [2, 2, 2]
 
         self.assertAlmostEqual(cosine_similarity(v1, v2), 1, 9)
+
+    def test_cosine_to_deviation(self):
+        """Should return normalized angle between vectors, given a cosine similarity"""
+        self.assertAlmostEqual(cosine_to_deviation(1), 0, 9)
+        self.assertAlmostEqual(cosine_to_deviation(0), 0.5, 9)
+        self.assertAlmostEqual(cosine_to_deviation(-1), 1, 9)
+        self.assertAlmostEqual(cosine_to_deviation(0.5), 0.33333, 5)
