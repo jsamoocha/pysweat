@@ -13,5 +13,5 @@ Mapping of one or more attributes of an observation to a new attribute of the sa
 rolling/moving window operations of arbitrary complexity that use the same attributes from other observations.
 
 ## Features
-Aggregation of observations to a new attribute of a higher-order entity, e.g. every speed measure in a stream
-becoming the average speed of an activity.
+Aggregation of observations to a new attribute of a higher-order entity, e.g. all speed measures in a stream
+become the average speed of an activity.
