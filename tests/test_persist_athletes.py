@@ -16,3 +16,8 @@ class AthletePersistenceTest(unittest.TestCase):
         self.assertItemsEqual(result.id, [123, 456])
         self.assertItemsEqual(result.name, ['foobar', 'baz'])
         self.assertItemsEqual(result.sex, ['M', 'F'])
+
+    @patch('pymongo.MongoClient')
+    def test_load_athletes_with_simple_filter(self, mongo_mock):
+        load_athletes(mongo_mock, sex='F')
+        mongo_mock.db.athletes.find.assert_called_with({'sex': 'F'})
