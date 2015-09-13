@@ -11,7 +11,7 @@ class ActivityFeaturesTest(unittest.TestCase):
             {'latlng': [[52.1, 5.3], [52.2, 5.4], [58, 5.5], [52.4, 5.4], [52.5, 5.3]]},
             index=[1, 2, 3, 4, 5])
         activity_df = pd.DataFrame({'strava_id': [1, 2], 'distance': [1, 2]})
-        activity_features = ActivityFeatures(MongoClient)
+        activity_features = ActivityFeatures(MongoClient())
 
         features_result = activity_features.turns_per_km(activity_df)
 
