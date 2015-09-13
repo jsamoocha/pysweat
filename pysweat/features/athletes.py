@@ -18,4 +18,4 @@ class AthleteFeatures(object):
                                                        'mean',
                                                        activity_type.lower() + '_' + activity_measurement + '_' + 'std',
                                                        activity_type.lower() + '_' + 'count'])
-        return pd.merge(athlete_df, athlete_activity_stats, on='athlete_id')
+        return pd.merge(athlete_df, athlete_activity_stats, how='left', on='athlete_id')
