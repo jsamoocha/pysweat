@@ -17,7 +17,7 @@ class AthletesFeaturesTest(unittest.TestCase):
             'unused_measurement': [1, 1, 1]
         })
         athlete_df = pd.DataFrame({
-            'athlete_id': [1, 2],
+            'id': [1, 2],
             'name': ['foo', 'bar']
         })
         athlete_features = AthleteFeatures(MongoClient())
@@ -25,7 +25,7 @@ class AthletesFeaturesTest(unittest.TestCase):
         features_results = athlete_features.summary_stats(athlete_df)
 
         self.assertEqual(len(features_results), 2)
-        self.assertItemsEqual(features_results.columns, ['athlete_id', 'name', 'ride_average_speed_mean',
+        self.assertItemsEqual(features_results.columns, ['id', 'name', 'ride_average_speed_mean',
                                                          'ride_average_speed_std', 'ride_count'])
         self.assertAlmostEqual(features_results.ride_average_speed_mean[0], 26, 9)
         self.assertAlmostEqual(features_results.ride_average_speed_mean[1], 25, 9)
@@ -43,7 +43,7 @@ class AthletesFeaturesTest(unittest.TestCase):
             'heart_rate': [130, 140, 150]
         })
         athlete_df = pd.DataFrame({
-            'athlete_id': [1, 2],
+            'id': [1, 2],
             'name': ['foo', 'bar']
         })
         mongo = MongoClient()
@@ -54,7 +54,7 @@ class AthletesFeaturesTest(unittest.TestCase):
 
         load_activities_mock.assert_called_with(mongo, type='Run')
         self.assertEqual(len(features_results), 2)
-        self.assertItemsEqual(features_results.columns, ['athlete_id', 'name', 'run_heart_rate_mean',
+        self.assertItemsEqual(features_results.columns, ['id', 'name', 'run_heart_rate_mean',
                                                          'run_heart_rate_std', 'run_count'])
         self.assertAlmostEqual(features_results.run_heart_rate_mean[0], 140, 9)
         self.assertAlmostEqual(features_results.run_heart_rate_mean[1], 140, 9)
@@ -72,7 +72,7 @@ class AthletesFeaturesTest(unittest.TestCase):
             'heart_rate': [130, 140, 150]
         })
         athlete_df = pd.DataFrame({
-            'athlete_id': [1, 3],
+            'id': [1, 3],
             'name': ['foo', 'baz']
         })
         athlete_features = AthleteFeatures(MongoClient())

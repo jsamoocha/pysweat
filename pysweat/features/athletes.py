@@ -13,9 +13,9 @@ class AthleteFeatures(object):
                                                 athlete_activities[activity_measurement].std(),
                                                 len(athlete_activities))
                                                for athlete_id, athlete_activities in activity_df.groupby('athlete_id')],
-                                              columns=['athlete_id',
+                                              columns=['id',
                                                        activity_type.lower() + '_' + activity_measurement + '_' +
                                                        'mean',
                                                        activity_type.lower() + '_' + activity_measurement + '_' + 'std',
                                                        activity_type.lower() + '_' + 'count'])
-        return pd.merge(athlete_df, athlete_activity_stats, how='left', on='athlete_id')
+        return pd.merge(athlete_df, athlete_activity_stats, how='left', on='id')
