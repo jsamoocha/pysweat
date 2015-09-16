@@ -75,3 +75,18 @@ class AthletesFeaturesTest(unittest.TestCase):
         self.assertAlmostEqual(features_results.run_average_speed_mean[0], 11, 9)
         self.assertTrue(np.isnan(features_results.run_average_speed_mean[1]))
         self.assertTrue(np.isnan(features_results.run_count[1]))
+
+    def test_summary_stats_inconsistent_activities_provided(self):
+        """Should raise ValueError in case of activities with multiple types"""
+        athlete_df = pd.DataFrame({
+            'id': [1, 2],
+            'name': ['foo', 'bar']
+        })
+        activity_df = pd.DataFrame({
+            'athlete_id': [1, 2, 1],
+            'average_speed': [25, 25, 12],
+            'unused_measurement': [1, 1, 1],
+            'type': ['Ride', 'Ride', 'Run']  # Mixture of rides and runs
+        })
+
+        self.assertRaises(ValueError, summary_stats, athlete_df, activity_df)

@@ -1,6 +1,9 @@
 import pandas as pd
 
 def summary_stats(athlete_df, activity_df, activity_measurement='average_speed'):
+    if len(activity_df.type.unique()) > 1:
+        raise ValueError("Expecting only 1 activity type, %d provided" % len(activity_df.type.unique()))
+
     activity_type = activity_df.type[0]
     athlete_activity_stats = pd.DataFrame([(athlete_id,
                                             athlete_activities[activity_measurement].mean(),
