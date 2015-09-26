@@ -20,3 +20,10 @@ class StreamPersistenceTest(unittest.TestCase):
         self.assertEqual(list(result.columns.values), ['velocity_smooth'])
         self.assertEqual(list(result.velocity_smooth.values), [101, 102, 103])
         self.assertEqual(list(result.index.values), [101, 102, 103])
+
+    @patch('pymongo.MongoClient')
+    def test_load_stream_non_existing(self, mongo_mock):
+        """Should return None if stream does not exist"""
+        mongo_mock.db.streams.find_one.return_value = None
+
+        self.assertIsNone(load_stream(mongo_mock, activity_id=000, stream_type='non_existing'))
