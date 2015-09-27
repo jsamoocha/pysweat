@@ -30,14 +30,14 @@ class ActivityFeatures(object):
         all_max_values = [float('NaN')] * len(activity_df)
 
         for i in range(len(activity_df)):
-            heartrate_df = load_stream(self.database_driver, activity_df.strava_id[i], '%s' % measurement)
-            if heartrate_df is not None:
-                min_index = heartrate_df.index.min()
+            stream_df = load_stream(self.database_driver, activity_df.strava_id[i], '%s' % measurement)
+            if stream_df is not None:
+                min_index = stream_df.index.min()
                 all_max_values[i] = np.nanmax(
-                    [heartrate_df.heartrate.loc[subtract_n_minutes(second,
+                    [stream_df[measurement].loc[subtract_n_minutes(second,
                                                                    minutes=window_size,
                                                                    minimum_value=min_index):second].min()
-                     for second in heartrate_df.index])
+                     for second in stream_df.index])
 
         activity_df['max_%s_%d_minutes' % (measurement, window_size)] = all_max_values
         return activity_df

@@ -37,3 +37,25 @@ class ActivityFeaturesTest(unittest.TestCase):
                               ['strava_id', 'distance', 'max_heartrate_5_minutes'])
         self.assertEqual(len(features_result), 2)
         self.assertEqual(features_result.max_heartrate_5_minutes[0], 115)
+
+    @patch('pysweat.features.activities.load_stream')
+    def test_max_value_maintained_for_n_minutes_alternative_measure_and_window(self, load_stream_mock):
+        """Should return the maximum value of the given measure that was maintained for the given number of
+        minutes"""
+        load_stream_mock.return_value = pd.DataFrame(
+            {'power': [100, 115, 120, 100, 110]},
+            index=[180, 360, 540, 720, 900]
+        )
+        activity_df = pd.DataFrame(
+            {'strava_id': [1, 2], 'distance': [1, 2]}
+        )
+        activity_features = ActivityFeatures(MongoClient())
+
+        features_result = activity_features.max_value_maintained_for_n_minutes(activity_df,
+                                                                               measurement='power',
+                                                                               window_size=8)
+
+        self.assertItemsEqual(list(features_result.columns.values),
+                              ['strava_id', 'distance', 'max_power_8_minutes'])
+        self.assertEqual(len(features_result), 2)
+        self.assertEqual(features_result.max_power_8_minutes[0], 100)
