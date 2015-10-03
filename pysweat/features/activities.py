@@ -19,7 +19,13 @@ class ActivityFeatures(object):
         stream_df = derivative(stream_df, derivative_colname='x_smooth')
         stream_df = derivative(stream_df, derivative_colname='y_smooth')
         stream_df = rolling_similarity(stream_df, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
-        return np.nansum([cosine_to_deviation(cos) for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+
+        try:
+            return np.nansum([cosine_to_deviation(cos)
+                              for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+        except ValueError:
+            print 'oops: %d' % activity_id
+            return np.nan
 
     def turns_per_km(self, activity_df):
         activity_df['turns_per_km'] = [self.__total_deviation(activity_df.strava_id[i]) / activity_df.distance[i]
