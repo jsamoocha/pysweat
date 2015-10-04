@@ -27,3 +27,17 @@ class StreamPersistenceTest(unittest.TestCase):
         mongo_mock.db.streams.find_one.return_value = None
 
         self.assertIsNone(load_stream(mongo_mock, activity_id=000, stream_type='non_existing'))
+
+    @patch('pymongo.MongoClient')
+    def test_load_stream_duplicate_timestamps(self, mongo_mock):
+        """Should use the last observation in case of non-unique timestamps"""
+        mongo_mock.db.streams.find_one.return_value = {
+            '_id': '123',
+            'activity_id': 456,
+            'data': [101, 101, 103],
+            'type': 'velocity_smooth'
+        }
+
+        result = load_stream(mongo_mock, activity_id=456, stream_type='velocity_smooth')
+        self.assertEqual(len(result), 2)
+        self.assertItemsEqual(result.velocity_smooth, [101, 103])
