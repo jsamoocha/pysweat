@@ -24,6 +24,20 @@ class SimilarityTransformationTest(unittest.TestCase):
 
         self.assertAlmostEqual(cosine_similarity(v1, v2), -1, 9)
 
+    def test_cosine_similarity_floating_point_rounding_error_positive(self):
+        """Should return 1 as maximum in case of floating point rounding errors"""
+        v1 = (0.0000015006504264572506635033732891315594, 0.0000006050474740115774352489097509533167)
+        v2 = (0.0000015006504264503117695994660607539117, 0.0000006050474739005551327863940969109535)
+
+        self.assertTrue(cosine_similarity(v1, v2) <= 1)
+
+    def test_cosine_similarity_floating_point_rounding_error_negative(self):
+        """Should return -1 as minimum in case of floating point rounding errors"""
+        v1 = (0.0000015006504264572506635033732891315594, 0.0000006050474740115774352489097509533167)
+        v2 = (-0.0000015006504264503117695994660607539117, -0.0000006050474739005551327863940969109535)
+
+        self.assertTrue(cosine_similarity(v1, v2) >= -1)
+
     def test_cosine_similarity_similar_vectors_3d_lists(self):
         """Should compute cosine similarity regardless vector representation or dimension"""
         v1 = [1, 1, 1]
