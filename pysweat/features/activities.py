@@ -1,4 +1,5 @@
 from __future__ import division
+import logging
 import numpy as np
 from pysweat.persistence.streams import load_stream
 from pysweat.transformation.gps import lat_long_to_x_y
@@ -24,7 +25,7 @@ class ActivityFeatures(object):
             return np.nansum([cosine_to_deviation(cos)
                               for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
         except ValueError:
-            print 'oops: %d' % activity_id
+            logging.warning('Failed to compute route deviation for activity %d, returning NaN' % activity_id)
             return np.nan
 
     def turns_per_km(self, activity_df):
