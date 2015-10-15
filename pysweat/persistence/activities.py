@@ -11,5 +11,5 @@ def save_activities(mongo, activities_df):
         UpdateOne({'strava_id': record['strava_id']},
                   {'$set': {key: value for (key, value) in record.items() if key != 'strava_id'}},
                   upsert=True)
-        for record in activities_df.to_dict(outtype='record')
+        for record in activities_df.to_dict(orient='record')
     ])
