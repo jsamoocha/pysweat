@@ -29,6 +29,18 @@ class StreamPersistenceTest(unittest.TestCase):
         self.assertIsNone(load_stream(mongo_mock, activity_id=000, stream_type='non_existing'))
 
     @patch('pymongo.MongoClient')
+    def test_load_stream_empty(self, mongo_mock):
+        """Should return None if stream is empty"""
+        mongo_mock.db.streams.find_one.return_value = {
+            '_id': '123',
+            'activity_id': 456,
+            'data': [],
+            'type': 'velocity_smooth'
+        }
+
+        self.assertIsNone(load_stream(mongo_mock, activity_id=456, stream_type='velocity_smooth'))
+
+    @patch('pymongo.MongoClient')
     def test_load_stream_duplicate_timestamps(self, mongo_mock):
         """Should use the last observation in case of non-unique timestamps"""
         mongo_mock.db.streams.find_one.return_value = {
