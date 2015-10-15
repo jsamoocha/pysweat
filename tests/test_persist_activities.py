@@ -1,5 +1,6 @@
 import unittest
 import pandas as pd
+import numpy as np
 from mock import patch
 from pymongo import UpdateOne
 from pysweat.persistence.activities import load_activities, save_activities
@@ -38,4 +39,16 @@ class ActivityPersistenceTest(unittest.TestCase):
         mock_mongo.db.activities.bulk_write.assert_called_with([
             UpdateOne({'strava_id': 11}, {'$set': {'a': 1, 'b': 4}}, upsert=True),
             UpdateOne({'strava_id': 12}, {'$set': {'a': 2, 'b': 5}}, upsert=True)
+        ])
+
+    @patch('pymongo.MongoClient')
+    def test_save_activities_with_nan_values(self, mock_mongo):
+        """Should not save fields with NaN values"""
+        test_df = pd.DataFrame({'strava_id': [11, 12], 'a': [np.nan, 2], 'b': [4, float('NaN')]})
+
+        save_activities(mock_mongo, test_df)
+
+        mock_mongo.db.activities.bulk_write.assert_called_with([
+            UpdateOne({'strava_id': 11}, {'$set': {'b': 4}}, upsert=True),
+            UpdateOne({'strava_id': 12}, {'$set': {'a': 2}}, upsert=True)
         ])
