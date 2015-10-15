@@ -14,18 +14,23 @@ class ActivityFeatures(object):
 
     def __total_deviation(self, activity_id):
         stream_df = load_stream(self.database_driver, activity_id, 'latlng')
-        stream_df = lat_long_to_x_y(stream_df)
-        stream_df = smooth(stream_df, smooth_colname='x')
-        stream_df = smooth(stream_df, smooth_colname='y')
-        stream_df = derivative(stream_df, derivative_colname='x_smooth')
-        stream_df = derivative(stream_df, derivative_colname='y_smooth')
-        stream_df = rolling_similarity(stream_df, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
 
-        try:
-            return np.nansum([cosine_to_deviation(cos)
-                              for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
-        except ValueError:
-            logging.warning('Failed to compute route deviation for activity %d, returning NaN' % activity_id)
+        if stream_df is not None:
+            stream_df = lat_long_to_x_y(stream_df)
+            stream_df = smooth(stream_df, smooth_colname='x')
+            stream_df = smooth(stream_df, smooth_colname='y')
+            stream_df = derivative(stream_df, derivative_colname='x_smooth')
+            stream_df = derivative(stream_df, derivative_colname='y_smooth')
+            stream_df = rolling_similarity(stream_df, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+
+            try:
+                return np.nansum([cosine_to_deviation(cos)
+                                  for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+            except ValueError:
+                logging.warning('Failed to compute route deviation for activity %d, returning NaN' % activity_id)
+                return np.nan
+        else:
+            logging.warning('No gps stream available for activity %d, returning NaN' % activity_id)
             return np.nan
 
     def turns_per_km(self, activity_df):
