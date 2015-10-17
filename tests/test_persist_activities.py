@@ -42,6 +42,19 @@ class ActivityPersistenceTest(unittest.TestCase):
         ])
 
     @patch('pymongo.MongoClient')
+    def test_save_activities_non_numeric(self, mock_mongo):
+        test_df = pd.DataFrame({'strava_id': [11, 12], 'a': [1, 2], 'b': ['foo', 'bar']})
+
+        save_activities(mock_mongo, test_df)
+
+        calls = mock_mongo.method_calls
+        self.assertEqual(len(calls), 1)
+        mock_mongo.db.activities.bulk_write.assert_called_with([
+            UpdateOne({'strava_id': 11}, {'$set': {'a': 1, 'b': 'foo'}}, upsert=True),
+            UpdateOne({'strava_id': 12}, {'$set': {'a': 2, 'b': 'bar'}}, upsert=True)
+        ])
+
+    @patch('pymongo.MongoClient')
     def test_save_activities_with_nan_values(self, mock_mongo):
         """Should not save fields with NaN values"""
         test_df = pd.DataFrame({'strava_id': [11, 12], 'a': [np.nan, 2], 'b': [4, float('NaN')]})
