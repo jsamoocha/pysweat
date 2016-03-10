@@ -3,11 +3,8 @@ import unittest
 import numpy as np
 import pandas as pd
 
+from pysweat.transformation.activities import weighted_average
 from pysweat.transformation.windows import select_activity_window
-
-
-def weighted_average(activities_df, feature, weight_feature):
-    return sum(activities_df[weight_feature] * activities_df[feature]) / sum(activities_df[weight_feature])
 
 
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
