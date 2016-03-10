@@ -6,8 +6,8 @@ import pandas as pd
 from pysweat.transformation.windows import select_activity_window
 
 
-def weighted_average(activities):
-    return sum(activities.distance * activities.average_speed) / sum(activities.distance)
+def weighted_average(activities_df, feature, weight_feature):
+    return sum(activities_df[weight_feature] * activities_df[feature]) / sum(activities_df[weight_feature])
 
 
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
@@ -53,4 +53,4 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
 
     def test_weighted_average(self):
         """Should return average speed weighted by distance"""
-        self.assertEqual(16, weighted_average(self.test_activities))
+        self.assertEqual(16, weighted_average(self.test_activities, feature='average_speed', weight_feature='distance'))
