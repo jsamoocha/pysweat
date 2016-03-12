@@ -57,7 +57,12 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
         """Should return average speed weighted by distance"""
         self.assertEqual(16, weighted_average(self.test_activities, feature='average_speed', weight_feature='distance'))
 
-    def test_get_activities_without_features_all_activities_with_feature(self):
+    def test_get_activities_without_feature_all_activities_with_feature(self):
         """Should return all-false boolean index if all activities have the feature"""
         self.assertItemsEqual([False, False, False],
                               get_activities_without_feature(self.test_activities, 'average_speed'))
+
+    def test_get_activities_without_feature_no_activities_with_feature(self):
+        """Should return all-true boolean index if no activities have the feature"""
+        self.assertItemsEqual([True, True, True],
+                              get_activities_without_feature(self.test_activities, 'non_existing_feature'))
