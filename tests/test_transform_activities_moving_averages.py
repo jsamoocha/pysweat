@@ -4,11 +4,8 @@ import numpy as np
 import pandas as pd
 
 from pysweat.transformation.activities import weighted_average
+from pysweat.transformation.general import get_observations_without_feature
 from pysweat.transformation.windows import select_activity_window
-
-
-def get_activities_without_feature(activity_df, feature_name):
-    return pd.isnull(activity_df[feature_name]) if feature_name in activity_df else [True] * len(activity_df.index)
 
 
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
@@ -60,14 +57,14 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
     def test_get_activities_without_feature_all_activities_with_feature(self):
         """Should return all-false boolean index if all activities have the feature"""
         self.assertItemsEqual([False, False, False],
-                              get_activities_without_feature(self.test_activities, 'average_speed'))
+                              get_observations_without_feature(self.test_activities, 'average_speed'))
 
     def test_get_activities_without_feature_no_activities_with_feature(self):
         """Should return all-true boolean index if no activities have the feature"""
         self.assertItemsEqual([True, True, True],
-                              get_activities_without_feature(self.test_activities, 'non_existing_feature'))
+                              get_observations_without_feature(self.test_activities, 'non_existing_feature'))
 
     def test_get_activities_without_feature_first_activity_has_feature(self):
         """Should return all-true boolean index except for first activity that has the feature"""
         self.assertItemsEqual([False, True, True],
-                              get_activities_without_feature(self.test_activities, 'average_speed_28'))
+                              get_observations_without_feature(self.test_activities, 'average_speed_28'))
