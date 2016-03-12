@@ -17,9 +17,10 @@ test_activities = pd.DataFrame().from_dict({
 })
 
 
-def compute_moving_averages(activity_df, to_be_computed):
-    activity_df.loc[to_be_computed, 'avg_speed_28'] = [
-        weighted_average(select_activity_window(activity_df, before, 28), 'average_speed', 'distance')
+def compute_moving_averages(activity_df, feature_name, window_days):
+    to_be_computed = get_observations_without_feature(activity_df, feature_name)
+    activity_df.loc[to_be_computed, feature_name + '_' + str(window_days)] = [
+        weighted_average(select_activity_window(activity_df, before, window_days), feature_name, 'distance')
         for before in activity_df.start_date_local[to_be_computed]
         ]
     return activity_df
@@ -83,6 +84,12 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
 
     def test_compute_moving_averages_retains_original_data(self):
         """Should compute moving average for given feature retaining existing features and observations"""
-        self.assertEqual(3, len(compute_moving_averages(self.test_activities, [True, True, True])))
+        self.assertEqual(3, len(compute_moving_averages(self.test_activities, feature_name='test_var', window_days=2)))
         self.assertEqual(len(test_activities.columns) + 1,
-                         len(compute_moving_averages(self.test_activities, [True, True, True]).columns))
+                         len(compute_moving_averages(
+                                 self.test_activities, feature_name='test_var', window_days=2).columns))
+
+    def test_compute_moving_averages_adds_column_for_given_feature(self):
+        """Should create new column with name [original_feature_name]_[period] as name"""
+        self.assertIn('test_var_3',
+                      compute_moving_averages(self.test_activities, feature_name='test_var', window_days=3).columns)
