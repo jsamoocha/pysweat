@@ -66,3 +66,8 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
         """Should return all-true boolean index if no activities have the feature"""
         self.assertItemsEqual([True, True, True],
                               get_activities_without_feature(self.test_activities, 'non_existing_feature'))
+
+    def test_get_activities_without_feature_first_activity_has_feature(self):
+        """Should return all-true boolean index except for first activity that has the feature"""
+        self.assertItemsEqual([False, True, True],
+                              get_activities_without_feature(self.test_activities, 'average_speed_28'))
