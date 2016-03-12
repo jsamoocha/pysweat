@@ -7,12 +7,17 @@ from pysweat.transformation.activities import weighted_average
 from pysweat.transformation.windows import select_activity_window
 
 
+def get_activities_without_feature(activity_df, feature_name):
+    return pd.isnull(activity_df[feature_name]) if feature_name in activity_df else [True] * len(activity_df.index)
+
+
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
     test_activities = pd.DataFrame().from_dict({
         'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
         'test_var': [1, 2, 3],
         'distance': [1, 1, 2],
-        'average_speed': [18, 22, 12]
+        'average_speed': [18, 22, 12],
+        'average_speed_28': [18, np.NaN, np.NaN]
     })
 
     mock_athletes = [
@@ -51,3 +56,8 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
     def test_weighted_average(self):
         """Should return average speed weighted by distance"""
         self.assertEqual(16, weighted_average(self.test_activities, feature='average_speed', weight_feature='distance'))
+
+    def test_get_activities_without_features_all_activities_with_feature(self):
+        """Should return all-false boolean index if all activities have the feature"""
+        self.assertItemsEqual([False, False, False],
+                              get_activities_without_feature(self.test_activities, 'average_speed'))
