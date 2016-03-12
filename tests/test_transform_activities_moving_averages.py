@@ -89,7 +89,13 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
                          len(compute_moving_averages(
                                  self.test_activities, feature_name='test_var', window_days=2).columns))
 
+    def test_compute_moving_averages_no_new_column_for_existing_moving_averages(self):
+        """Should not add new column if one or more moving averages were computed for the given feature"""
+        self.assertEqual(len(test_activities.columns),
+                         len(compute_moving_averages(
+                                 self.test_activities, feature_name='average_speed', window_days=28).columns))
+
     def test_compute_moving_averages_adds_column_for_given_feature(self):
-        """Should create new column with name [original_feature_name]_[period] as name"""
+        """Should create new column with name [original_feature_name]_[window_size] as name"""
         self.assertIn('test_var_3',
                       compute_moving_averages(self.test_activities, feature_name='test_var', window_days=3).columns)
