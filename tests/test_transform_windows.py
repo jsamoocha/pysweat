@@ -1,6 +1,7 @@
 import unittest
 from pysweat.transformation.windows import subtract_n_minutes
 
+
 class WindowsTransformTest(unittest.TestCase):
     def test_subtract_5_minutes(self):
         """Should default to 5 minutes"""
