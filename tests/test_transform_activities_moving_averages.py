@@ -8,27 +8,31 @@ from pysweat.transformation.general import get_observations_without_feature
 from pysweat.transformation.windows import select_activity_window
 
 
-# def compute_moving_averages(activity_df, to_be_computed):
-#     activity_df.loc[to_be_computed, 'avg_speed_28'] = [
-#         weighted_average(select_activity_window(activity_df, before, 28))
-#         for before in activity_df.start_date_local[to_be_computed]
-#         ]
-#     return activity_df
+test_activities = pd.DataFrame().from_dict({
+    'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
+    'test_var': [1, 2, 3],
+    'distance': [1, 1, 2],
+    'average_speed': [18, 22, 12],
+    'average_speed_28': [18, np.NaN, np.NaN]
+})
+
+
+def compute_moving_averages(activity_df, to_be_computed):
+    activity_df.loc[to_be_computed, 'avg_speed_28'] = [
+        weighted_average(select_activity_window(activity_df, before, 28), 'average_speed', 'distance')
+        for before in activity_df.start_date_local[to_be_computed]
+        ]
+    return activity_df
 
 
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
-    test_activities = pd.DataFrame().from_dict({
-        'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
-        'test_var': [1, 2, 3],
-        'distance': [1, 1, 2],
-        'average_speed': [18, 22, 12],
-        'average_speed_28': [18, np.NaN, np.NaN]
-    })
-
     mock_athletes = [
         {'id': 123},
         {'id': 456}
     ]
+
+    def setUp(self):
+        self.test_activities = pd.DataFrame.copy(test_activities)
 
     def test_select_window_end_ts_and_window_size_within_data(self):
         """Should return dataframe with complete window"""
@@ -77,4 +81,8 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
         self.assertEqual([False, True, True],
                          list(get_observations_without_feature(self.test_activities, 'average_speed_28')))
 
-    # def test_compute_moving_averages(self):
+    def test_compute_moving_averages_retains_original_data(self):
+        """Should compute moving average for given feature retaining existing features and observations"""
+        self.assertEqual(3, len(compute_moving_averages(self.test_activities, [True, True, True])))
+        self.assertEqual(len(test_activities.columns) + 1,
+                         len(compute_moving_averages(self.test_activities, [True, True, True]).columns))
