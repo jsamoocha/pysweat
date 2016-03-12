@@ -8,6 +8,14 @@ from pysweat.transformation.general import get_observations_without_feature
 from pysweat.transformation.windows import select_activity_window
 
 
+# def compute_moving_averages(activity_df, to_be_computed):
+#     activity_df.loc[to_be_computed, 'avg_speed_28'] = [
+#         weighted_average(select_activity_window(activity_df, before, 28))
+#         for before in activity_df.start_date_local[to_be_computed]
+#         ]
+#     return activity_df
+
+
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
     test_activities = pd.DataFrame().from_dict({
         'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
@@ -56,15 +64,17 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
 
     def test_get_activities_without_feature_all_activities_with_feature(self):
         """Should return all-false boolean index if all activities have the feature"""
-        self.assertItemsEqual([False, False, False],
-                              get_observations_without_feature(self.test_activities, 'average_speed'))
+        self.assertEqual([False, False, False],
+                         list(get_observations_without_feature(self.test_activities, 'average_speed')))
 
     def test_get_activities_without_feature_no_activities_with_feature(self):
         """Should return all-true boolean index if no activities have the feature"""
-        self.assertItemsEqual([True, True, True],
-                              get_observations_without_feature(self.test_activities, 'non_existing_feature'))
+        self.assertEqual([True, True, True],
+                         list(get_observations_without_feature(self.test_activities, 'non_existing_feature')))
 
     def test_get_activities_without_feature_first_activity_has_feature(self):
         """Should return all-true boolean index except for first activity that has the feature"""
-        self.assertItemsEqual([False, True, True],
-                              get_observations_without_feature(self.test_activities, 'average_speed_28'))
+        self.assertEqual([False, True, True],
+                         list(get_observations_without_feature(self.test_activities, 'average_speed_28')))
+
+    # def test_compute_moving_averages(self):
