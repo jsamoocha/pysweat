@@ -28,6 +28,10 @@ def save_activities(mongo, activities_df):
     ])
 
 
+def get_activity_types(mongo):
+    return mongo.db.activities.find().distinct('type')
+
+
 def get_first_activity_without_feature_for_type(mongo, feature_name, activity_type='Run', athlete_id=None):
     """Returns the datetime of the first activity (in time) of the given type for which the given feature does not
     exist. If athlete_id is provided, returns only the datetime for that athlete."""
