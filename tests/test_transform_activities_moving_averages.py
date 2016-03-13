@@ -10,7 +10,7 @@ from pysweat.transformation.windows import select_activity_window
 
 test_activities = pd.DataFrame().from_dict({
     'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
-    'test_var': [1, 2, 3],
+    'test_var': [1, 2, 3.5],
     'distance': [1, 1, 2],
     'average_speed': [18, 22, 12],
     'average_speed_28': [18, np.NaN, np.NaN]
@@ -32,14 +32,14 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
 
         self.assertEqual(2, len(selected_activities))
         self.assertEqual(2, selected_activities.test_var.values[0])
-        self.assertEqual(3, selected_activities.test_var.values[1])
+        self.assertEqual(3.5, selected_activities.test_var.values[1])
 
     def test_select_window_end_ts_after_last_activity_window_size_within_data(self):
         """Should return last activity"""
         selected_activities = select_activity_window(self.test_activities, pd.tslib.Timestamp('2015-05-02'), 2)
 
         self.assertEqual(1, len(selected_activities))
-        self.assertEqual(3, selected_activities.test_var.values[0])
+        self.assertEqual(3.5, selected_activities.test_var.values[0])
 
     def test_select_window_end_ts_after_last_activity_window_size_outside_data(self):
         """Should return empty"""
@@ -90,3 +90,10 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
         """Should create new column with name [original_feature_name]_[window_size] as name"""
         self.assertIn('test_var_3',
                       compute_moving_averages(self.test_activities, feature_name='test_var', window_days=3).columns)
+
+    def test_compute_moving_averages_computes_moving_averages(self):
+        """Should compute moving averages for given feature and window"""
+        self.assertEqual([1, 1.5, 3],
+                         list(compute_moving_averages(self.test_activities,
+                                                      feature_name='test_var',
+                                                      window_days=2).test_var_2))
