@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from pysweat.transformation.activities import weighted_average
+from pysweat.transformation.activities import weighted_average, compute_moving_averages
 from pysweat.transformation.general import get_observations_without_feature
 from pysweat.transformation.windows import select_activity_window
 
@@ -15,15 +15,6 @@ test_activities = pd.DataFrame().from_dict({
     'average_speed': [18, 22, 12],
     'average_speed_28': [18, np.NaN, np.NaN]
 })
-
-
-def compute_moving_averages(activity_df, feature_name, window_days):
-    to_be_computed = get_observations_without_feature(activity_df, feature_name)
-    activity_df.loc[to_be_computed, feature_name + '_' + str(window_days)] = [
-        weighted_average(select_activity_window(activity_df, before, window_days), feature_name, 'distance')
-        for before in activity_df.start_date_local[to_be_computed]
-        ]
-    return activity_df
 
 
 class ActivityMovingAverageTransformationTest(unittest.TestCase):
