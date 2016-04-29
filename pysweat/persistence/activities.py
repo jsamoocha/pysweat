@@ -2,6 +2,9 @@ from pymongo import UpdateOne
 import pandas as pd
 import numpy as np
 import json
+import logging
+
+from pymongo.errors import BulkWriteError
 
 
 def load_activities(mongo, **query):
@@ -19,13 +22,16 @@ def __should_write_field(key, value):
 
 
 def save_activities(mongo, activities_df):
-    mongo.db.activities.bulk_write([
-        UpdateOne({'strava_id': record['strava_id']},
-                  {'$set': {key: value for (key, value) in record.items()
-                            if __should_write_field(key, value)}},
-                  upsert=True)
-        for record in activities_df.to_dict(orient='record')
-    ])
+    try:
+        mongo.db.activities.bulk_write([
+            UpdateOne({'strava_id': record['strava_id']},
+                      {'$set': {key: value for (key, value) in record.items()
+                                if __should_write_field(key, value)}},
+                      upsert=True)
+            for record in activities_df.to_dict(orient='record')
+        ])
+    except BulkWriteError as bwe:
+        logging.error('Failed to persist (updated) activities: %s', str(bwe.details))
 
 
 def get_activity_types(mongo):
