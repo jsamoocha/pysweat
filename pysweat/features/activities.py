@@ -9,11 +9,15 @@ from pysweat.transformation.windows import subtract_n_minutes
 
 
 class ActivityFeatures(object):
-    def __init__(self, database_driver=None):
-        self.database_driver = database_driver
-
     @staticmethod
     def sum_of_turns(lat_long_stream_df):
+        """
+        Returns the total number of 360 degree turns during an activity, i.e. an activity consisting of a single lap
+        on a running track would count to "1".
+        :param lat_long_stream_df: Pandas dataframe with (at least) one column called 'latlng' consisting of
+        2-element lists with lat-long values
+        :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
+        """
 
         lat_long_stream_df = lat_long_to_x_y(lat_long_stream_df)
         lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='x')
@@ -27,7 +31,7 @@ class ActivityFeatures(object):
             return np.nansum([cosine_to_deviation(cos)
                               for cos in lat_long_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
         except ValueError:
-            logging.warning('Failed to compute route deviation, returning NaN')
+            logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
 
     def max_value_maintained_for_n_minutes(self, activity_df, measurement='heartrate', window_size=5):
