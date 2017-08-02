@@ -7,7 +7,6 @@ from pysweat.transformation.activities import weighted_average, compute_moving_a
 from pysweat.transformation.general import get_observations_without_feature
 from pysweat.transformation.windows import select_activity_window
 
-
 test_activities = pd.DataFrame().from_dict({
     'start_date_local': [np.datetime64(ts) for ts in pd.date_range(end='2015-05-01', periods=3).tolist()],
     'test_var': [1, 2, 3.5],
@@ -36,20 +35,20 @@ class ActivityMovingAverageTransformationTest(unittest.TestCase):
 
     def test_select_window_end_ts_after_last_activity_window_size_within_data(self):
         """Should return last activity"""
-        selected_activities = select_activity_window(self.test_activities, pd.tslib.Timestamp('2015-05-02'), 2)
+        selected_activities = select_activity_window(self.test_activities, pd.Timestamp('2015-05-02'), 2)
 
         self.assertEqual(1, len(selected_activities))
         self.assertEqual(3.5, selected_activities.test_var.values[0])
 
     def test_select_window_end_ts_after_last_activity_window_size_outside_data(self):
         """Should return empty"""
-        selected_activities = select_activity_window(self.test_activities, pd.tslib.Timestamp('2015-05-05'), 2)
+        selected_activities = select_activity_window(self.test_activities, pd.Timestamp('2015-05-05'), 2)
 
         self.assertEqual(0, len(selected_activities))
 
     def test_select_window_end_ts_before_last_activity_window_size_outside_data(self):
         """Should return first activity"""
-        selected_activities = select_activity_window(self.test_activities, pd.tslib.Timestamp('2015-04-29'), 2)
+        selected_activities = select_activity_window(self.test_activities, pd.Timestamp('2015-04-29'), 2)
 
         self.assertEqual(1, len(selected_activities))
         self.assertEqual(1, selected_activities.test_var.values[0])
