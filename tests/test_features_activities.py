@@ -1,61 +1,54 @@
 import unittest
+
 import pandas as pd
-from mock import patch
-from pymongo import MongoClient
+
 from pysweat.features.activities import ActivityFeatures
 
+
 class ActivityFeaturesTest(unittest.TestCase):
-    @patch('pysweat.features.activities.load_stream')
-    def test_turns_per_km(self, load_stream_mock):
-        load_stream_mock.return_value = pd.DataFrame(
+    def test_turns_per_km(self):
+        lat_long_stream_df = pd.DataFrame(
             {'latlng': [[52.1, 5.3], [52.2, 5.4], [58, 5.5], [52.4, 5.4], [52.5, 5.3]]},
             index=[1, 2, 3, 4, 5])
-        activity_df = pd.DataFrame({'strava_id': [1, 2], 'distance': [1, 2]})
-        activity_features = ActivityFeatures(MongoClient())
 
-        features_result = activity_features.turns_per_km(activity_df)
+        total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df)
+        self.assertAlmostEqual(0.12, total_turns_result, places=2)
 
-        self.assertItemsEqual(list(features_result.columns.values), ['strava_id', 'distance', 'turns_per_km'])
-        self.assertAlmostEqual(features_result.turns_per_km[0], 0.12, 2)
-        self.assertAlmostEqual(features_result.turns_per_km[1], 0.06, 2)
+    def test_turns_per_km_no_turns(self):
+        lat_long_stream_df = pd.DataFrame(
+            {'latlng': [[52.1, 5.3], [52.2, 5.3], [52.3, 5.3], [52.4, 5.3], [52.5, 5.3]]},
+            index=[1, 2, 3, 4, 5])
 
-    @patch('pysweat.features.activities.load_stream')
-    def test_max_value_maintained_for_n_minutes(self, load_stream_mock):
+        total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df)
+        self.assertAlmostEqual(0.0, total_turns_result, places=2)
+
+    def test_max_value_maintained_for_n_minutes(self):
         """Should return the maximum heartrate that was maintained for at least 5 minutes by default"""
-        load_stream_mock.return_value = pd.DataFrame(
+        hr_stream_df = pd.DataFrame(
             {'heartrate': [100, 115, 120, 100, 110]},
             index=[180, 360, 540, 720, 900]
         )
-        activity_df = pd.DataFrame(
-            {'strava_id': [1, 2], 'distance': [1, 2]}
-        )
-        activity_features = ActivityFeatures(MongoClient())
+        max_value_result = ActivityFeatures.max_value_maintained_for_n_minutes(hr_stream_df)
 
-        features_result = activity_features.max_value_maintained_for_n_minutes(activity_df)
+        self.assertEqual(115, max_value_result)
 
-        self.assertItemsEqual(list(features_result.columns.values),
-                              ['strava_id', 'distance', 'max_heartrate_5_minutes'])
-        self.assertEqual(len(features_result), 2)
-        self.assertEqual(features_result.max_heartrate_5_minutes[0], 115)
-
-    @patch('pysweat.features.activities.load_stream')
-    def test_max_value_maintained_for_n_minutes_alternative_measure_and_window(self, load_stream_mock):
+    def test_max_value_maintained_for_n_minutes_alternative_measure_and_window(self):
         """Should return the maximum value of the given measure that was maintained for the given number of
         minutes"""
-        load_stream_mock.return_value = pd.DataFrame(
+        power_stream_df = pd.DataFrame(
             {'power': [100, 115, 120, 100, 110]},
             index=[180, 360, 540, 720, 900]
         )
-        activity_df = pd.DataFrame(
-            {'strava_id': [1, 2], 'distance': [1, 2]}
+        max_value_result = ActivityFeatures.max_value_maintained_for_n_minutes(power_stream_df, window_size=8)
+
+        self.assertEqual(100, max_value_result)
+
+    def test_max_value_maintained_for_n_minutes_multiple_measurements(self):
+        """Raises ValueError in case of stream df with != 1 column"""
+        multi_stream_df = pd.DataFrame(
+            {'heartrate': [100, 115, 120, 100, 110],
+             'power': [200, 215, 220, 200, 210]},
+            index=[180, 360, 540, 720, 900]
         )
-        activity_features = ActivityFeatures(MongoClient())
-
-        features_result = activity_features.max_value_maintained_for_n_minutes(activity_df,
-                                                                               measurement='power',
-                                                                               window_size=8)
-
-        self.assertItemsEqual(list(features_result.columns.values),
-                              ['strava_id', 'distance', 'max_power_8_minutes'])
-        self.assertEqual(len(features_result), 2)
-        self.assertEqual(features_result.max_power_8_minutes[0], 100)
+        with self.assertRaises(ValueError):
+            ActivityFeatures.max_value_maintained_for_n_minutes(multi_stream_df)
