@@ -34,18 +34,9 @@ class ActivityFeatures(object):
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
 
-    def max_value_maintained_for_n_minutes(self, activity_df, measurement='heartrate', window_size=5):
-        all_max_values = [float('NaN')] * len(activity_df)
-
-        for i in range(len(activity_df)):
-            stream_df = load_stream(self.database_driver, activity_df.strava_id[i], '%s' % measurement)
-            if stream_df is not None:
-                min_index = stream_df.index.min()
-                all_max_values[i] = np.nanmax(
-                    [stream_df[measurement].loc[subtract_n_minutes(second,
-                                                                   minutes=window_size,
-                                                                   minimum_value=min_index):second].min()
-                     for second in stream_df.index])
-
-        activity_df['max_%s_%d_minutes' % (measurement, window_size)] = all_max_values
-        return activity_df
+    @staticmethod
+    def max_value_maintained_for_n_minutes(stream_df, window_size=5):
+        min_index = stream_df.index.min()
+        return np.nanmax(
+            [stream_df.loc[subtract_n_minutes(second, minutes=window_size, minimum_value=min_index):second].min()
+             for second in stream_df.index])
