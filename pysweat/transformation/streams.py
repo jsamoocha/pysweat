@@ -4,14 +4,16 @@ import numpy as np
 
 
 def smooth(stream_df, window_size=3, smooth_colname='x'):
-    stream_df[smooth_colname + '_smooth'] = pd.Series(pd.rolling_mean(stream_df[smooth_colname], center=True,
-                                                                      window=window_size))
+    stream_df[smooth_colname + '_smooth'] = pd.Series(stream_df[smooth_colname].rolling(center=True,
+                                                                                        window=window_size).mean())
     return stream_df
+
 
 def derivative(stream_df, derivative_colname='x'):
     stream_df['d' + derivative_colname + '_dt'] = pd.Series(
         np.diff(stream_df[derivative_colname]) / np.diff(stream_df.index.values), index=stream_df.index[1:])
     return stream_df
+
 
 def rolling_similarity(stream_df, similarity_function, *column_names):
     vectors = zip(*[stream_df[column_name] for column_name in column_names])
