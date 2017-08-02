@@ -9,34 +9,26 @@ from pysweat.transformation.windows import subtract_n_minutes
 
 
 class ActivityFeatures(object):
-    def __init__(self, database_driver):
+    def __init__(self, database_driver=None):
         self.database_driver = database_driver
 
-    def __total_deviation(self, activity_id):
-        stream_df = load_stream(self.database_driver, activity_id, 'latlng')
+    @staticmethod
+    def sum_of_turns(lat_long_stream_df):
 
-        if stream_df is not None:
-            stream_df = lat_long_to_x_y(stream_df)
-            stream_df = smooth(stream_df, smooth_colname='x')
-            stream_df = smooth(stream_df, smooth_colname='y')
-            stream_df = derivative(stream_df, derivative_colname='x_smooth')
-            stream_df = derivative(stream_df, derivative_colname='y_smooth')
-            stream_df = rolling_similarity(stream_df, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+        lat_long_stream_df = lat_long_to_x_y(lat_long_stream_df)
+        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='x')
+        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='y')
+        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='x_smooth')
+        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='y_smooth')
+        lat_long_stream_df = rolling_similarity(lat_long_stream_df, cosine_similarity,
+                                                'dx_smooth_dt', 'dy_smooth_dt')
 
-            try:
-                return np.nansum([cosine_to_deviation(cos)
-                                  for cos in stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
-            except ValueError:
-                logging.warning('Failed to compute route deviation for activity %d, returning NaN' % activity_id)
-                return np.nan
-        else:
-            logging.warning('No gps stream available for activity %d, returning NaN' % activity_id)
+        try:
+            return np.nansum([cosine_to_deviation(cos)
+                              for cos in lat_long_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+        except ValueError:
+            logging.warning('Failed to compute route deviation, returning NaN')
             return np.nan
-
-    def turns_per_km(self, activity_df):
-        activity_df['turns_per_km'] = [self.__total_deviation(activity_df.strava_id[i]) / activity_df.distance[i]
-                                       for i in activity_df.index]
-        return activity_df
 
     def max_value_maintained_for_n_minutes(self, activity_df, measurement='heartrate', window_size=5):
         all_max_values = [float('NaN')] * len(activity_df)
