@@ -1,7 +1,7 @@
 import unittest
+
 import pandas as pd
-from mock import patch
-from pymongo import MongoClient
+
 from pysweat.features.activities import ActivityFeatures
 
 
@@ -42,3 +42,13 @@ class ActivityFeaturesTest(unittest.TestCase):
         max_value_result = ActivityFeatures.max_value_maintained_for_n_minutes(power_stream_df, window_size=8)
 
         self.assertEqual(100, max_value_result)
+
+    def test_max_value_maintained_for_n_minutes_multiple_measurements(self):
+        """Raises ValueError in case of stream df with != 1 column"""
+        multi_stream_df = pd.DataFrame(
+            {'heartrate': [100, 115, 120, 100, 110],
+             'power': [200, 215, 220, 200, 210]},
+            index=[180, 360, 540, 720, 900]
+        )
+        with self.assertRaises(ValueError):
+            ActivityFeatures.max_value_maintained_for_n_minutes(multi_stream_df)

@@ -1,10 +1,12 @@
 from __future__ import division
+
 import logging
+
 import numpy as np
-from pysweat.persistence.streams import load_stream
+
 from pysweat.transformation.gps import lat_long_to_x_y
-from pysweat.transformation.streams import smooth, derivative, rolling_similarity
 from pysweat.transformation.similarities import cosine_similarity, cosine_to_deviation
+from pysweat.transformation.streams import smooth, derivative, rolling_similarity
 from pysweat.transformation.windows import subtract_n_minutes
 
 
@@ -36,6 +38,9 @@ class ActivityFeatures(object):
 
     @staticmethod
     def max_value_maintained_for_n_minutes(stream_df, window_size=5):
+        if len(stream_df.columns) != 1:
+            raise ValueError('Expecting exactly 1 measurement column in stream dataframe, got %d' %
+                             len(stream_df.columns))
         min_index = stream_df.index.min()
         return np.nanmax(
             [stream_df.loc[subtract_n_minutes(second, minutes=window_size, minimum_value=min_index):second].min()
