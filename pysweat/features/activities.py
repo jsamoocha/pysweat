@@ -38,6 +38,14 @@ class ActivityFeatures(object):
 
     @staticmethod
     def max_value_maintained_for_n_minutes(stream_df, window_size=5):
+        """
+        Returns the maximum value of a measurement that is maintained for at least n minutes, e.g.
+        if during a low-intensity activity there was one intense interval of at least n minutes during which the
+        minimum heart rate was x, then x is returned.
+        :param stream_df: Pandas dataframe with exactly one column representing the measurement
+        :param window_size: (integer) number of minutes for which a minimum value needs to be maintained
+        :return: the maximum value of the measurement that was maintained for at least n minutes
+        """
         if len(stream_df.columns) != 1:
             raise ValueError('Expecting exactly 1 measurement column in stream dataframe, got %d' %
                              len(stream_df.columns))
