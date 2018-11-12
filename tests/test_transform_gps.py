@@ -15,6 +15,17 @@ class GPSTransformationTest(unittest.TestCase):
         np.testing.assert_almost_equal(list(transform_result.x.values), [0.057, 0.058, 0.059], 3)
         np.testing.assert_almost_equal(list(transform_result.y.values), [0.909, 0.911, 0.913], 3)
 
+    def test_latlong_to_x_y_null_values(self):
+        """Should ignore null values in latlng column"""
+        latlong_df = pd.DataFrame({'latlng': [[52.1, 5.3], None, [52.3, 5.5]]}, index=[1, 2, 3])
+
+        transform_result = gps.lat_long_to_x_y(latlong_df)
+
+        self.assertEqual(list(transform_result.columns.values), ['latlng', 'x', 'y'])
+        self.assertEqual([1, 3], list(transform_result.index.values))
+        np.testing.assert_almost_equal(list(transform_result.x.values), [0.057, 0.059], 3)
+        np.testing.assert_almost_equal(list(transform_result.y.values), [0.909, 0.913], 3)
+
     def test_latlong_to_x_y_alternative_latlong_col_name(self):
         """Should use alternative column name for lat-long"""
         latlong_df = pd.DataFrame({'alt_latlng': [[52.1, 5.3], [52.2, 5.4], [52.3, 5.5]]}, index=[1, 2, 3])
