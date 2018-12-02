@@ -12,19 +12,23 @@ from pysweat.transformation.windows import subtract_n_minutes
 
 class ActivityFeatures(object):
     @staticmethod
-    def sum_of_turns(lat_long_stream_df):
+    def sum_of_turns(lat_long_stream_df, window_size=3):
         """
         Returns the total number of 360 degree turns during an activity, i.e. an activity consisting of a single lap
         on a running track would count to "1".
+        :param window_size: window size for filters, expressed in seconds
+        :type window_size: int
         :param lat_long_stream_df: Pandas dataframe with (at least) one column called 'latlng' consisting of
         2-element lists with lat-long values
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
+        mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
+        filter_window_size = int(round(window_size / mean_time_diff))
 
         turns_stream_df = (
             lat_long_to_x_y(lat_long_stream_df)
-                .pipe(smooth, smooth_colname='x')
-                .pipe(smooth, smooth_colname='y')
+                .pipe(smooth, smooth_colname='x', window_size=filter_window_size)
+                .pipe(smooth, smooth_colname='y', window_size=filter_window_size)
                 .pipe(derivative, derivative_colname='x_smooth')
                 .pipe(derivative, derivative_colname='y_smooth')
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')

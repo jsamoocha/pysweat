@@ -14,6 +14,15 @@ class ActivityFeaturesTest(unittest.TestCase):
         total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df)
         self.assertAlmostEqual(0.12, total_turns_result, places=2)
 
+    def test_sum_of_turns_given_window_size(self):
+        """With window size of 1 sec (in this case 1 observation), no smoothing is applied, i.e. more severe turns"""
+        lat_long_stream_df = pd.DataFrame(
+            {'latlng': [[52.1, 5.3], [52.2, 5.4], [58, 5.5], [52.4, 5.4], [52.5, 5.3]]},
+            index=[1, 2, 3, 4, 5])
+
+        total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, window_size=1)
+        self.assertAlmostEqual(2.0, total_turns_result, places=1)
+
     def test_sum_of_turns_no_turns(self):
         lat_long_stream_df = pd.DataFrame(
             {'latlng': [[52.1, 5.3], [52.2, 5.3], [52.3, 5.3], [52.4, 5.3], [52.5, 5.3]]},
