@@ -21,17 +21,17 @@ class ActivityFeatures(object):
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
 
-        lat_long_stream_df = lat_long_to_x_y(lat_long_stream_df)
-        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='x')
-        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='y')
-        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='x_smooth')
-        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='y_smooth')
-        lat_long_stream_df = rolling_similarity(lat_long_stream_df, cosine_similarity,
-                                                'dx_smooth_dt', 'dy_smooth_dt')
-
+        turns_stream_df = (
+            lat_long_to_x_y(lat_long_stream_df)
+                .pipe(smooth, smooth_colname='x')
+                .pipe(smooth, smooth_colname='y')
+                .pipe(derivative, derivative_colname='x_smooth')
+                .pipe(derivative, derivative_colname='y_smooth')
+                .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+        )
         try:
             return np.nansum([cosine_to_deviation(cos)
-                              for cos in lat_long_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+                              for cos in turns_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
