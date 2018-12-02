@@ -33,10 +33,10 @@ class ActivityFeatures(object):
                 .pipe(derivative, derivative_colname='x_smooth')
                 .pipe(derivative, derivative_colname='y_smooth')
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+                .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )
         try:
-            return np.nansum([cosine_to_deviation(cos)
-                              for cos in turns_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+            return np.nansum(turns_stream_df.deviation)
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
