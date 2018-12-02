@@ -19,7 +19,8 @@ class ActivityFeatures(object):
         :param window_size: window size for filters, expressed in seconds
         :type window_size: int
         :param lat_long_stream_df: Pandas dataframe with (at least) one column called 'latlng' consisting of
-        2-element lists with lat-long values
+        2-element lists with lat-long values and index that represents number of seconds since the start of the
+        activity
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
         mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
