@@ -12,26 +12,42 @@ from pysweat.transformation.windows import subtract_n_minutes
 
 class ActivityFeatures(object):
     @staticmethod
-    def sum_of_turns(lat_long_stream_df):
+    def sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0):
         """
-        Returns the total number of 360 degree turns during an activity, i.e. an activity consisting of a single lap
-        on a running track would count to "1".
+        Returns the total number of 180 degree turns during an activity, i.e. an activity consisting of a single lap
+        on a running track would return "2". A threshold can be provided to filter out relatively small route
+        deviations that are not real turns. The window size represents the number of seconds a turn takes.
         :param lat_long_stream_df: Pandas dataframe with (at least) one column called 'latlng' consisting of
-        2-element lists with lat-long values
+        2-element lists with lat-long values and index that represents number of seconds since the start of the
+        activity
+        :param window_size: window size for filters, expressed in seconds
+        :type window_size: int, > 0
+        :param noise_threshold: the minimum amount of deviation within window_size seconds to count as a turn
+        (sensible values are between 0.25 and 0.5, or 45-degree to 90-degree turns).
+        :type noise_threshold: float, in the range [0, 1]
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
+        mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
+        filter_window_size = int(round(window_size / mean_time_diff))
 
-        lat_long_stream_df = lat_long_to_x_y(lat_long_stream_df)
-        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='x')
-        lat_long_stream_df = smooth(lat_long_stream_df, smooth_colname='y')
-        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='x_smooth')
-        lat_long_stream_df = derivative(lat_long_stream_df, derivative_colname='y_smooth')
-        lat_long_stream_df = rolling_similarity(lat_long_stream_df, cosine_similarity,
-                                                'dx_smooth_dt', 'dy_smooth_dt')
+        turns_stream_df = (
+            lat_long_to_x_y(lat_long_stream_df)
+                .pipe(smooth, smooth_colname='x', window_size=filter_window_size)
+                .pipe(smooth, smooth_colname='y', window_size=filter_window_size)
+                .pipe(derivative, derivative_colname='x_smooth')
+                .pipe(derivative, derivative_colname='y_smooth')
+                .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+                .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
+        )
 
+        def turn_filter(deviation_window):
+            return (deviation_window.values[len(deviation_window) // 2]
+                    if deviation_window.sum() > noise_threshold else 0)
         try:
-            return np.nansum([cosine_to_deviation(cos)
-                              for cos in lat_long_stream_df.cosine_similarity_dx_smooth_dt_dy_smooth_dt])
+            return np.nansum(turns_stream_df.deviation
+                             .fillna(0)
+                             .rolling(filter_window_size, center=True)
+                             .apply(turn_filter, raw=False))
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan

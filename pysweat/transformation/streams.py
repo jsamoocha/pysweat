@@ -18,7 +18,7 @@ def derivative(stream_df, derivative_colname='x'):
 
 
 def rolling_similarity(stream_df, similarity_function, *column_names):
-    vectors = zip(*[stream_df[column_name] for column_name in column_names])
+    vectors = list(zip(*[stream_df[column_name] for column_name in column_names]))
     return stream_df.assign(**{
         similarity_function.__name__ + '_' + '_'.join(column_names): pd.Series([
             similarity_function(vectors[i - 1], vectors[i]) for i in range(1, len(vectors))
