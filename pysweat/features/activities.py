@@ -12,7 +12,7 @@ from pysweat.transformation.windows import subtract_n_minutes
 
 class ActivityFeatures(object):
     @staticmethod
-    def sum_of_turns(lat_long_stream_df, window_size=3):
+    def sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0):
         """
         Returns the total number of 360 degree turns during an activity, i.e. an activity consisting of a single lap
         on a running track would count to "1".
@@ -35,8 +35,15 @@ class ActivityFeatures(object):
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
                 .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )
+
+        def turn_filter(deviation_window):
+            return (deviation_window.values[len(deviation_window) // 2]
+                    if deviation_window.sum() > noise_threshold else 0)
         try:
-            return np.nansum(turns_stream_df.deviation)
+            return np.nansum(turns_stream_df.deviation
+                             .fillna(0)
+                             .rolling(filter_window_size, center=True)
+                             .apply(turn_filter, raw=False))
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan

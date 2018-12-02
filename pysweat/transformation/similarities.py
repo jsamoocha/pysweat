@@ -11,4 +11,5 @@ def cosine_similarity(v1, v2):
 
 
 def cosine_to_deviation(stream_df, cosine_col='cos'):
+    # deviation corresponds (linearly) to turn severity, e.g. 45 deg = 0.25, 90 deg = 0.5, 180 deg = 1
     return stream_df.assign(deviation=np.arccos(stream_df[cosine_col]) / pi)

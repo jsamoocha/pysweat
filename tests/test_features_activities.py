@@ -23,6 +23,16 @@ class ActivityFeaturesTest(unittest.TestCase):
         total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, window_size=1)
         self.assertAlmostEqual(2.0, total_turns_result, places=1)
 
+    def test_sum_of_turns_noise_threshold(self):
+        """Should only count turns more severe than noise threshold as 'real' turns"""
+        # 45-degree turn, i.e. deviation = 0.25
+        lat_long_stream_df = pd.DataFrame(
+            {'latlng': [[52.0, 5.3], [52.1, 5.3], [52.2, 5.3], [52.3, 5.35], [52.4, 5.4], [52.5, 5.45], [52.6, 5.5]]},
+            index=[1, 2, 3, 4, 5, 6, 7])
+
+        total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, noise_threshold=0.5)
+        self.assertAlmostEqual(0.0, total_turns_result, places=2)
+
     def test_sum_of_turns_no_turns(self):
         lat_long_stream_df = pd.DataFrame(
             {'latlng': [[52.1, 5.3], [52.2, 5.3], [52.3, 5.3], [52.4, 5.3], [52.5, 5.3]]},
