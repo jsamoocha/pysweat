@@ -14,13 +14,17 @@ class ActivityFeatures(object):
     @staticmethod
     def sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0):
         """
-        Returns the total number of 360 degree turns during an activity, i.e. an activity consisting of a single lap
-        on a running track would count to "1".
-        :param window_size: window size for filters, expressed in seconds
-        :type window_size: int
+        Returns the total number of 180 degree turns during an activity, i.e. an activity consisting of a single lap
+        on a running track would return "2". A threshold can be provided to filter out relatively small route
+        deviations that are not real turns. The window size represents the number of seconds a turn takes.
         :param lat_long_stream_df: Pandas dataframe with (at least) one column called 'latlng' consisting of
         2-element lists with lat-long values and index that represents number of seconds since the start of the
         activity
+        :param window_size: window size for filters, expressed in seconds
+        :type window_size: int, > 0
+        :param noise_threshold: the minimum amount of deviation within window_size seconds to count as a turn
+        (sensible values are between 0.25 and 0.5, or 45-degree to 90-degree turns).
+        :type noise_threshold: float, in the range [0, 1]
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
         mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
