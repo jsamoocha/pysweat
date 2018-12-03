@@ -6,7 +6,8 @@ setup(
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=[
         'pymongo>=3',
-        'pandas>=0.20'
+        'pandas>=0.20',
+        'arrow>=0.12'
     ],
     url='https://github.com/jsamoocha/pysweat',
     license='Apache',

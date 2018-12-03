@@ -4,6 +4,9 @@ import numpy as np
 
 
 def smooth(stream_df, window_size=3, smooth_colname='x'):
+    if isinstance(stream_df.index, pd.DatetimeIndex):
+        window_size = str(window_size) + 's'
+
     return stream_df.assign(**{
         smooth_colname + '_smooth': pd.Series(stream_df[smooth_colname].rolling(window=window_size).mean())
     })
