@@ -5,7 +5,7 @@ import numpy as np
 
 def smooth(stream_df, window_size=3, smooth_colname='x'):
     return stream_df.assign(**{
-        smooth_colname + '_smooth': pd.Series(stream_df[smooth_colname].rolling(center=True, window=window_size).mean())
+        smooth_colname + '_smooth': pd.Series(stream_df[smooth_colname].rolling(window=window_size).mean())
     })
 
 

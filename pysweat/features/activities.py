@@ -41,12 +41,11 @@ class ActivityFeatures(object):
         )
 
         def turn_filter(deviation_window):
-            return (deviation_window.values[len(deviation_window) // 2]
-                    if deviation_window.sum() > noise_threshold else 0)
+            return deviation_window.values[-1] if deviation_window.sum() > noise_threshold else 0
         try:
             return np.nansum(turns_stream_df.deviation
                              .fillna(0)
-                             .rolling(filter_window_size, center=True)
+                             .rolling(filter_window_size)
                              .apply(turn_filter, raw=False))
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
