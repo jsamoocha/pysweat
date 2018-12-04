@@ -2,7 +2,9 @@ from __future__ import division
 
 import logging
 
+import arrow
 import numpy as np
+import pandas as pd
 
 from pysweat.transformation.gps import lat_long_to_x_y
 from pysweat.transformation.similarities import cosine_similarity, cosine_to_deviation
@@ -10,7 +12,30 @@ from pysweat.transformation.streams import smooth, derivative, rolling_similarit
 from pysweat.transformation.windows import subtract_n_minutes
 
 
+def _moving_sum_filter(series, window_size=3, threshold=0, use_index=False):
+    if use_index:
+        # assumes series has index representing seconds since start, window size is interpreted as seconds (and dynamic)
+        series = series.copy()  # prevent overwriting original index
+        base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
+        base_index_seconds = series.index
+
+        series.index = [pd.Timestamp(base_dt.shift(seconds=s).datetime) for s in base_index_seconds]
+        sums_ascending = series.rolling(window=str(window_size) + 's').sum()
+
+        # Reverse rolling sum
+        series_rev = series[::-1]
+        series_rev.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
+        sums_descending = series_rev.rolling(window=str(window_size) + 's').sum()[::-1]
+    else:
+        # uses fixed window size
+        sums_ascending = series.rolling(window=window_size, min_periods=1).sum()
+        sums_descending = series[::-1].rolling(window=window_size, min_periods=1).sum()[::-1]
+
+    return pd.Series(np.where(np.maximum(sums_ascending, sums_descending) > threshold, series, 0))
+
+
 class ActivityFeatures(object):
+
     @staticmethod
     def sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0):
         """
@@ -27,27 +52,18 @@ class ActivityFeatures(object):
         :type noise_threshold: float, in the range [0, 1]
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
-        mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
-        filter_window_size = int(round(window_size / mean_time_diff))
-
         turns_stream_df = (
             lat_long_to_x_y(lat_long_stream_df)
-                .pipe(smooth, smooth_colname='x', window_size=filter_window_size)
-                .pipe(smooth, smooth_colname='y', window_size=filter_window_size)
-                .pipe(derivative, derivative_colname='x_smooth')
-                .pipe(derivative, derivative_colname='y_smooth')
+                .pipe(smooth, smooth_colnames=['x', 'y'], window_size=window_size, use_index=True)
+                .pipe(derivative, derivative_colnames=['x_smooth', 'y_smooth'])
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
                 .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )
 
-        def turn_filter(deviation_window):
-            return (deviation_window.values[len(deviation_window) // 2]
-                    if deviation_window.sum() > noise_threshold else 0)
         try:
-            return np.nansum(turns_stream_df.deviation
-                             .fillna(0)
-                             .rolling(filter_window_size, center=True)
-                             .apply(turn_filter, raw=False))
+            return _moving_sum_filter(
+                turns_stream_df.deviation.fillna(0), use_index=True, window_size=window_size, threshold=noise_threshold
+            ).sum()
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
