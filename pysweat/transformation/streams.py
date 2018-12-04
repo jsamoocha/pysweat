@@ -6,6 +6,17 @@ import numpy as np
 
 
 def smooth(stream_df, window_size=3, smooth_colnames=None, use_index=False):
+    """
+    Smooths signals in dataframe with moving average filter. Uses either fix-sized window or fixed-duration window in
+    case that observations are non-equally spread over time.
+    :param stream_df: Pandas dataframe
+    :param window_size: Window size for moving average filter, interpreted either as number of observations (default),
+    or number of seconds (if use_index is true).
+    :param smooth_colnames: Iterable of column names to use, by default all columns are smoothed.
+    :param use_index: If True, the dataframe's index is interpreted as the number of seconds since start of the
+    activity and will be used to determine the dynamic window size when applying the moving average.
+    :return:
+    """
     if use_index:
         tmp_df = stream_df.copy()  # prevent overwriting original index
         base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
