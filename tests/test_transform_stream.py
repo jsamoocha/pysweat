@@ -53,26 +53,30 @@ class StreamTransformationTest(unittest.TestCase):
         self.assertEqual(list(transform_result.x_smooth.values), [1, 2, 3])
 
     def test_derivative(self):
-        """Should compute derivative for default column"""
-        test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 5, 6]})
+        """Should compute derivative for all columns by default"""
+        test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 5, 7]})
 
         transform_result = streams.derivative(test_df)
 
-        self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'dx_dt'])
+        self.assertItemsEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
         self.assertTrue(np.isnan(transform_result.dx_dt[0]))
         self.assertEqual(transform_result.dx_dt[1], 1.0)
-        self.assertEqual(transform_result.dx_dt[2], 1.0)
+        self.assertEqual(transform_result.dy_dt[2], 2.0)
 
-    def test_derivative_alternative_column_name(self):
+    def test_derivative_multiple_column_names(self):
         """Should compute derivative of given column name"""
         test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 6, 8]})
 
-        transform_result = streams.derivative(test_df, derivative_colname='y')
+        transform_result = streams.derivative(test_df, derivative_colnames=['x', 'y'])
 
-        self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'dy_dt'])
+        self.assertItemsEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
         self.assertTrue(np.isnan(transform_result.dy_dt[0]))
-        self.assertEqual(transform_result.dy_dt[1], 2.0)
+        self.assertEqual(transform_result.dx_dt[1], 1.0)
         self.assertEqual(transform_result.dy_dt[2], 2.0)
+
+        transform_result = streams.derivative(test_df, derivative_colnames=['y'])
+
+        self.assertItemsEqual(['x', 'y', 'dy_dt'], transform_result.columns)
 
     def test_derivative_nonlinear_index(self):
         """Should take into account dt in index when computing derivative"""

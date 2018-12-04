@@ -58,8 +58,7 @@ class ActivityFeatures(object):
         turns_stream_df = (
             lat_long_to_x_y(lat_long_stream_df)
                 .pipe(smooth, smooth_colnames=['x', 'y'], window_size=filter_window_size)
-                .pipe(derivative, derivative_colname='x_smooth')
-                .pipe(derivative, derivative_colname='y_smooth')
+                .pipe(derivative, derivative_colnames=['x_smooth', 'y_smooth'])
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
                 .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )

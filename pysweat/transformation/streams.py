@@ -25,11 +25,11 @@ def smooth(stream_df, window_size=3, smooth_colnames=None, use_index=False):
         })
 
 
-def derivative(stream_df, derivative_colname='x'):
+def derivative(stream_df, derivative_colnames=None):
     return stream_df.assign(**{
         'd' + derivative_colname + '_dt': pd.Series(
-            np.diff(stream_df[derivative_colname]) / np.diff(stream_df.index.values), index=stream_df.index[1:]
-        )
+            np.diff(stream_df[derivative_colname]) / np.diff(stream_df.index.values), index=stream_df.index[1:])
+        for derivative_colname in derivative_colnames or stream_df.columns
     })
 
 
