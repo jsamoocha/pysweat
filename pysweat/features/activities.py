@@ -23,8 +23,9 @@ def _moving_sum_filter(series, window_size=3, threshold=0, use_index=False):
         sums_ascending = series.rolling(window=str(window_size) + 's').sum()
 
         # Reverse rolling sum
-        series.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
-        sums_descending = series.rolling(window=str(window_size) + 's').sum()[::-1]
+        series_rev = series[::-1]
+        series_rev.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
+        sums_descending = series_rev.rolling(window=str(window_size) + 's').sum()[::-1]
     else:
         # uses fixed window size
         sums_ascending = series.rolling(window=window_size, min_periods=1).sum()
