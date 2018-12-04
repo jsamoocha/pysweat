@@ -2,7 +2,9 @@ from __future__ import division
 
 import logging
 
+import arrow
 import numpy as np
+import pandas as pd
 
 from pysweat.transformation.gps import lat_long_to_x_y
 from pysweat.transformation.similarities import cosine_similarity, cosine_to_deviation
@@ -10,7 +12,23 @@ from pysweat.transformation.streams import smooth, derivative, rolling_similarit
 from pysweat.transformation.windows import subtract_n_minutes
 
 
+def _moving_sum_filter(series, window_size=3, threshold=0):
+    series = series.copy()  # prevent overwriting original index
+    base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
+    base_index_seconds = series.index  # assumes series has index representing seconds since start
+
+    series.index = [pd.Timestamp(base_dt.shift(seconds=s).datetime) for s in base_index_seconds]
+    sums_ascending = series.rolling(window=str(window_size) + 's').sum()
+
+    # Reverse rolling sum
+    series.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
+    sums_descending = series.rolling(window=str(window_size) + 's').sum()[::-1]
+
+    return pd.Series(np.where(np.maximum(sums_ascending, sums_descending) > threshold, series, 0))
+
+
 class ActivityFeatures(object):
+
     @staticmethod
     def sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0):
         """

@@ -2,10 +2,22 @@ import unittest
 
 import pandas as pd
 
-from pysweat.features.activities import ActivityFeatures
+from pysweat.features.activities import ActivityFeatures, _moving_sum_filter
 
 
 class ActivityFeaturesTest(unittest.TestCase):
+    def test_moving_sum_filter_time_based_index(self):
+        test_series = pd.Series([0, 0, 1, 1, 2, 1, 0, 0], index=[1, 2, 5, 8, 9, 11, 12, 13])
+
+        filtered_series = _moving_sum_filter(test_series)  # default threshold of 0 - does not filter
+        self.assertListEqual([0, 0, 1, 1, 2, 1, 0, 0], filtered_series.values.tolist())
+
+        filtered_series = _moving_sum_filter(test_series, threshold=2)
+        self.assertListEqual([0, 0, 0, 1, 2, 1, 0, 0], filtered_series.values.tolist())
+
+        filtered_series = _moving_sum_filter(test_series, threshold=2, window_size=2)
+        self.assertListEqual([0, 0, 0, 1, 2, 0, 0, 0], filtered_series.values.tolist())
+
     def test_sum_of_turns(self):
         lat_long_stream_df = pd.DataFrame(
             {'latlng': [[52.1, 5.3], [52.2, 5.4], [58, 5.5], [52.4, 5.4], [52.5, 5.3]]},
