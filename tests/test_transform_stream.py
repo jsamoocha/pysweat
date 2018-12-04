@@ -20,6 +20,20 @@ class StreamTransformationTest(unittest.TestCase):
         self.assertEqual(transform_result.x_smooth[2], 2.0)
         self.assertEqual(transform_result.x_smooth[3], 3.0)
 
+    def test_smooth_multiple_columns(self):
+        """Should smooth stream using moving average, for default window size and column name"""
+        test_df = pd.DataFrame({'x': [1, 2, 3, 4], 'y': [11, 12, 13, 14]})
+
+        transform_result = streams.smooth(test_df, smooth_colnames=['x', 'y'])
+
+        self.assertItemsEqual(['x', 'x_smooth', 'y', 'y_smooth'], transform_result.columns)
+        self.assertEqual(transform_result.x_smooth[2], 2.0)
+        self.assertEqual(transform_result.y_smooth[3], 13.0)
+
+        transform_result = streams.smooth(test_df, smooth_colnames=['y'])
+
+        self.assertItemsEqual(['x', 'y', 'y_smooth'], transform_result.columns)
+
     def test_smooth_time_based_index(self):
         """Should smooth stream using moving average, with dynamic window size depending on the index"""
         test_df = pd.DataFrame({'x': [1, 2, 3, 4]}, index=[1, 4, 5, 7])
@@ -37,14 +51,6 @@ class StreamTransformationTest(unittest.TestCase):
         transform_result = streams.smooth(test_df, window_size=1)
 
         self.assertEqual(list(transform_result.x_smooth.values), [1, 2, 3])
-
-    def test_smooth_alternative_column_name(self):
-        """Should smooth stream of given column name"""
-        test_df = pd.DataFrame({'x': [1, 2, 3], 'y': [4, 5, 6]})
-
-        transform_result = streams.smooth(test_df, smooth_colname='y')
-
-        self.assertEqual(list(transform_result.columns.values), ['x', 'y', 'y_smooth'])
 
     def test_derivative(self):
         """Should compute derivative for default column"""

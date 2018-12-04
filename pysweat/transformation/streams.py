@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 
-def smooth(stream_df, window_size=3, smooth_colname='x', use_index=False):
+def smooth(stream_df, window_size=3, smooth_colnames=None, use_index=False):
     if use_index:
         tmp_df = stream_df.copy()  # prevent overwriting original index
         base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
@@ -16,10 +16,12 @@ def smooth(stream_df, window_size=3, smooth_colname='x', use_index=False):
         return stream_df.assign(**{
             smooth_colname + '_smooth': pd.Series(tmp_df[smooth_colname].rolling(window=window_size).mean().values,
                                                   index=stream_df.index)
+            for smooth_colname in smooth_colnames or stream_df.columns
         })
     else:
         return stream_df.assign(**{
             smooth_colname + '_smooth': pd.Series(stream_df[smooth_colname].rolling(window=window_size).mean())
+            for smooth_colname in smooth_colnames or stream_df.columns
         })
 
 
