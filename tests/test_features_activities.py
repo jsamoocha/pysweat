@@ -6,16 +6,28 @@ from pysweat.features.activities import ActivityFeatures, _moving_sum_filter
 
 
 class ActivityFeaturesTest(unittest.TestCase):
-    def test_moving_sum_filter_time_based_index(self):
-        test_series = pd.Series([0, 0, 1, 1, 2, 1, 0, 0], index=[1, 2, 5, 8, 9, 11, 12, 13])
+    def test_moving_sum_filter_fixed_window_size(self):
+        test_series = pd.Series([1, 0, 1, 1, 2, 1, 0, 0], index=[1, 2, 5, 8, 9, 11, 12, 13])
 
         filtered_series = _moving_sum_filter(test_series)  # default threshold of 0 - does not filter
+        self.assertListEqual([1, 0, 1, 1, 2, 1, 0, 0], filtered_series.values.tolist())
+
+        filtered_series = _moving_sum_filter(test_series, threshold=2)  # default window size of 3
         self.assertListEqual([0, 0, 1, 1, 2, 1, 0, 0], filtered_series.values.tolist())
 
-        filtered_series = _moving_sum_filter(test_series, threshold=2)
+        filtered_series = _moving_sum_filter(test_series, threshold=2, window_size=2)
         self.assertListEqual([0, 0, 0, 1, 2, 1, 0, 0], filtered_series.values.tolist())
 
-        filtered_series = _moving_sum_filter(test_series, threshold=2, window_size=2)
+    def test_moving_sum_filter_time_based_index(self):
+        test_series = pd.Series([1, 0, 1, 1, 2, 1, 0, 0], index=[1, 2, 5, 8, 9, 11, 12, 13])
+
+        filtered_series = _moving_sum_filter(test_series, use_index=True)  # default threshold of 0 - does not filter
+        self.assertListEqual([1, 0, 1, 1, 2, 1, 0, 0], filtered_series.values.tolist())
+
+        filtered_series = _moving_sum_filter(test_series, threshold=2, use_index=True)  # default window size of 3
+        self.assertListEqual([0, 0, 0, 1, 2, 1, 0, 0], filtered_series.values.tolist())
+
+        filtered_series = _moving_sum_filter(test_series, threshold=2, window_size=2, use_index=True)
         self.assertListEqual([0, 0, 0, 1, 2, 0, 0, 0], filtered_series.values.tolist())
 
     def test_sum_of_turns(self):

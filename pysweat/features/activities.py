@@ -12,17 +12,23 @@ from pysweat.transformation.streams import smooth, derivative, rolling_similarit
 from pysweat.transformation.windows import subtract_n_minutes
 
 
-def _moving_sum_filter(series, window_size=3, threshold=0):
-    series = series.copy()  # prevent overwriting original index
-    base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
-    base_index_seconds = series.index  # assumes series has index representing seconds since start
+def _moving_sum_filter(series, window_size=3, threshold=0, use_index=False):
+    if use_index:
+        # assumes series has index representing seconds since start, window size is interpreted as seconds (and dynamic)
+        series = series.copy()  # prevent overwriting original index
+        base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
+        base_index_seconds = series.index
 
-    series.index = [pd.Timestamp(base_dt.shift(seconds=s).datetime) for s in base_index_seconds]
-    sums_ascending = series.rolling(window=str(window_size) + 's').sum()
+        series.index = [pd.Timestamp(base_dt.shift(seconds=s).datetime) for s in base_index_seconds]
+        sums_ascending = series.rolling(window=str(window_size) + 's').sum()
 
-    # Reverse rolling sum
-    series.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
-    sums_descending = series.rolling(window=str(window_size) + 's').sum()[::-1]
+        # Reverse rolling sum
+        series.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
+        sums_descending = series.rolling(window=str(window_size) + 's').sum()[::-1]
+    else:
+        # uses fixed window size
+        sums_ascending = series.rolling(window=window_size, min_periods=1).sum()
+        sums_descending = series[::-1].rolling(window=window_size, min_periods=1).sum()[::-1]
 
     return pd.Series(np.where(np.maximum(sums_ascending, sums_descending) > threshold, series, 0))
 
