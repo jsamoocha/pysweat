@@ -22,18 +22,13 @@ class StreamTransformationTest(unittest.TestCase):
 
     def test_smooth_time_based_index(self):
         """Should smooth stream using moving average, with dynamic window size depending on the index"""
-        test_df = pd.DataFrame({'x': [1, 2, 3, 4]})
-        index_seconds_from_activity_start = [1, 4, 5, 7]
-        base_datetime = arrow.get('2000-01-01')
-        test_df.index = [pd.Timestamp(base_datetime.shift(seconds=s).datetime)
-                         for s in index_seconds_from_activity_start]
+        test_df = pd.DataFrame({'x': [1, 2, 3, 4]}, index=[1, 4, 5, 7])
+        transform_result = streams.smooth(test_df, window_size=2, use_index=True)
 
-        transform_result = streams.smooth(test_df, window_size=2)
-
-        self.assertEqual(transform_result.x_smooth[0], 1.0)
-        self.assertEqual(transform_result.x_smooth[1], 2.0)
-        self.assertEqual(transform_result.x_smooth[2], 2.5)
-        self.assertEqual(transform_result.x_smooth[3], 4.0)
+        self.assertEqual(transform_result.x_smooth[1], 1.0)
+        self.assertEqual(transform_result.x_smooth[4], 2.0)
+        self.assertEqual(transform_result.x_smooth[5], 2.5)
+        self.assertEqual(transform_result.x_smooth[7], 4.0)
 
     def test_smooth_alternative_window_size(self):
         """Should smooth stream with given window size"""
