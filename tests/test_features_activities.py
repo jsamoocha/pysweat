@@ -32,11 +32,11 @@ class ActivityFeaturesTest(unittest.TestCase):
 
     def test_sum_of_turns(self):
         lat_long_stream_df = pd.DataFrame(
-            {'latlng': [[52.1, 5.3], [52.2, 5.4], [58, 5.5], [52.4, 5.4], [52.5, 5.3]]},
+            {'latlng': [[-0.2, 0.0], [-0.1, 0.0], [0.0, 0.0], [0.0, 0.1], [0.0, 0.2]]},
             index=[1, 2, 3, 4, 5])
 
         total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df)
-        self.assertAlmostEqual(0.12, total_turns_result, places=2)
+        self.assertAlmostEqual(0.35, total_turns_result, places=2)
 
     def test_sum_of_turns_given_window_size(self):
         """With window size of 1 sec (in this case 1 observation), no smoothing is applied, i.e. more severe turns"""
@@ -57,6 +57,16 @@ class ActivityFeaturesTest(unittest.TestCase):
         total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, window_size=1, noise_threshold=0.5)
         self.assertAlmostEqual(0.0, total_turns_result, places=2)
         total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, window_size=1, noise_threshold=0.2)
+        self.assertAlmostEqual(0.25, total_turns_result, places=2)
+
+    def test_sum_of_turns_dynamic_index(self):
+        """Should cope with uneven-spaced observations in time"""
+        # ~ 45-degree turn, i.e. deviation ~ 0.25
+        lat_long_stream_df = pd.DataFrame(
+            {'latlng': [[5.0, 5.3], [5.1, 5.3], [5.2, 5.3], [5.3, 5.4], [5.4, 5.5], [5.5, 5.6], [5.6, 5.7]]},
+            index=[1, 2, 5, 10, 11, 99, 100])
+
+        total_turns_result = ActivityFeatures.sum_of_turns(lat_long_stream_df, window_size=3, noise_threshold=0.2)
         self.assertAlmostEqual(0.25, total_turns_result, places=2)
 
     def test_sum_of_turns_no_turns(self):

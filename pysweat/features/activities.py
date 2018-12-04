@@ -52,24 +52,18 @@ class ActivityFeatures(object):
         :type noise_threshold: float, in the range [0, 1]
         :return: numpy scalar representing the total sum of turns in the stream, or NaN if the computation failed
         """
-        mean_time_diff = np.diff(lat_long_stream_df.index.values).mean()
-        filter_window_size = int(round(window_size / mean_time_diff))
-
         turns_stream_df = (
             lat_long_to_x_y(lat_long_stream_df)
-                .pipe(smooth, smooth_colnames=['x', 'y'], window_size=filter_window_size)
+                .pipe(smooth, smooth_colnames=['x', 'y'], window_size=window_size, use_index=True)
                 .pipe(derivative, derivative_colnames=['x_smooth', 'y_smooth'])
                 .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
                 .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )
 
-        def turn_filter(deviation_window):
-            return deviation_window.values[-1] if deviation_window.sum() > noise_threshold else 0
         try:
-            return np.nansum(turns_stream_df.deviation
-                             .fillna(0)
-                             .rolling(filter_window_size)
-                             .apply(turn_filter, raw=False))
+            return _moving_sum_filter(
+                turns_stream_df.deviation.fillna(0), use_index=True, window_size=window_size, threshold=noise_threshold
+            ).sum()
         except ValueError:
             logging.warning('Failed to compute sum of turns, returning NaN')
             return np.nan
