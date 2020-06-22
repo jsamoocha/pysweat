@@ -22,7 +22,7 @@ class AthletesFeaturesTest(unittest.TestCase):
         features_results = summary_stats(athlete_df, activity_df)
 
         self.assertEqual(len(features_results), 2)
-        self.assertItemsEqual(features_results.columns, ['id', 'name', 'ride_average_speed_mean',
+        self.assertCountEqual(features_results.columns, ['id', 'name', 'ride_average_speed_mean',
                                                          'ride_average_speed_std', 'ride_count'])
         self.assertAlmostEqual(features_results.ride_average_speed_mean[0], 26, 9)
         self.assertAlmostEqual(features_results.ride_average_speed_mean[1], 25, 9)
@@ -47,7 +47,7 @@ class AthletesFeaturesTest(unittest.TestCase):
         features_results = summary_stats(athlete_df, activity_df, activity_measurement='heart_rate')
 
         self.assertEqual(len(features_results), 2)
-        self.assertItemsEqual(features_results.columns, ['id', 'name', 'run_heart_rate_mean',
+        self.assertCountEqual(features_results.columns, ['id', 'name', 'run_heart_rate_mean',
                                                          'run_heart_rate_std', 'run_count'])
         self.assertAlmostEqual(features_results.run_heart_rate_mean[0], 140, 9)
         self.assertAlmostEqual(features_results.run_heart_rate_mean[1], 140, 9)

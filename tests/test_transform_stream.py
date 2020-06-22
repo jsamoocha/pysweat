@@ -26,13 +26,13 @@ class StreamTransformationTest(unittest.TestCase):
 
         transform_result = streams.smooth(test_df, smooth_colnames=['x', 'y'])
 
-        self.assertItemsEqual(['x', 'x_smooth', 'y', 'y_smooth'], transform_result.columns)
+        self.assertCountEqual(['x', 'x_smooth', 'y', 'y_smooth'], transform_result.columns)
         self.assertEqual(transform_result.x_smooth[2], 2.0)
         self.assertEqual(transform_result.y_smooth[3], 13.0)
 
         transform_result = streams.smooth(test_df, smooth_colnames=['y'])
 
-        self.assertItemsEqual(['x', 'y', 'y_smooth'], transform_result.columns)
+        self.assertCountEqual(['x', 'y', 'y_smooth'], transform_result.columns)
 
     def test_smooth_time_based_index(self):
         """Should smooth stream using moving average, with dynamic window size depending on the index"""
@@ -58,7 +58,7 @@ class StreamTransformationTest(unittest.TestCase):
 
         transform_result = streams.derivative(test_df)
 
-        self.assertItemsEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
+        self.assertCountEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
         self.assertTrue(np.isnan(transform_result.dx_dt[0]))
         self.assertEqual(transform_result.dx_dt[1], 1.0)
         self.assertEqual(transform_result.dy_dt[2], 2.0)
@@ -69,14 +69,14 @@ class StreamTransformationTest(unittest.TestCase):
 
         transform_result = streams.derivative(test_df, derivative_colnames=['x', 'y'])
 
-        self.assertItemsEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
+        self.assertCountEqual(['x', 'y', 'dx_dt', 'dy_dt'], transform_result.columns)
         self.assertTrue(np.isnan(transform_result.dy_dt[0]))
         self.assertEqual(transform_result.dx_dt[1], 1.0)
         self.assertEqual(transform_result.dy_dt[2], 2.0)
 
         transform_result = streams.derivative(test_df, derivative_colnames=['y'])
 
-        self.assertItemsEqual(['x', 'y', 'dy_dt'], transform_result.columns)
+        self.assertCountEqual(['x', 'y', 'dy_dt'], transform_result.columns)
 
     def test_derivative_nonlinear_index(self):
         """Should take into account dt in index when computing derivative"""

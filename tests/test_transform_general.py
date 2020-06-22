@@ -10,5 +10,5 @@ class GeneralTransformationTest(unittest.TestCase):
 
         transform_result_df = delta_constant(test_df, 2, 'mean')
 
-        self.assertItemsEqual(transform_result_df.columns, ['x', 'd_x_mean'])
+        self.assertCountEqual(transform_result_df.columns, ['x', 'd_x_mean'])
         self.assertEqual(list(transform_result_df.d_x_mean.values), [-1, 0, 1])

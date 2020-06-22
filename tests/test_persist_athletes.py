@@ -13,9 +13,9 @@ class AthletePersistenceTest(unittest.TestCase):
         result = load_athletes(mongo_mock)
 
         self.assertEqual(len(result), 2)
-        self.assertItemsEqual(result.id, [123, 456])
-        self.assertItemsEqual(result.name, ['foobar', 'baz'])
-        self.assertItemsEqual(result.sex, ['M', 'F'])
+        self.assertCountEqual(result.id, [123, 456])
+        self.assertCountEqual(result.name, ['foobar', 'baz'])
+        self.assertCountEqual(result.sex, ['M', 'F'])
 
     @patch('pymongo.MongoClient')
     def test_load_athletes_with_simple_filter(self, mongo_mock):

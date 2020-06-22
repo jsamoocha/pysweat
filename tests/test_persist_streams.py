@@ -52,4 +52,4 @@ class StreamPersistenceTest(unittest.TestCase):
 
         result = load_stream(mongo_mock, activity_id=456, stream_type='velocity_smooth')
         self.assertEqual(len(result), 2)
-        self.assertItemsEqual(result.velocity_smooth, [101, 103])
+        self.assertCountEqual(result.velocity_smooth, [101, 103])
