@@ -30,7 +30,7 @@ def _moving_sum_filter(series, window_size=3, threshold=0, use_index=False):
         sums_ascending = series.rolling(window=window_size, min_periods=1).sum()
         sums_descending = series[::-1].rolling(window=window_size, min_periods=1).sum()[::-1]
 
-    return pd.Series(np.where(np.maximum(sums_ascending, sums_descending) > threshold, series, 0))
+    return pd.Series(np.where(np.maximum(sums_ascending.values, sums_descending.values) > threshold, series, 0))
 
 
 class ActivityFeatures(object):
