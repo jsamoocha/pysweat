@@ -2,7 +2,6 @@ from __future__ import division
 
 import logging
 
-import arrow
 import numpy as np
 import pandas as pd
 
@@ -16,16 +15,16 @@ def _moving_sum_filter(series, window_size=3, threshold=0, use_index=False):
     if use_index:
         # assumes series has index representing seconds since start, window size is interpreted as seconds (and dynamic)
         series = series.copy()  # prevent overwriting original index
-        base_dt = arrow.get('2001-01-01')  # pick arbitrary date as base for artificial DatetimeIndex
+        base_dt = pd.Timestamp.now()  # pick arbitrary date as base for artificial DatetimeIndex
         base_index_seconds = series.index
 
-        series.index = [pd.Timestamp(base_dt.shift(seconds=s).datetime) for s in base_index_seconds]
-        sums_ascending = series.rolling(window=str(window_size) + 's').sum()
+        series.index = pd.DatetimeIndex(base_dt + pd.to_timedelta(base_index_seconds, unit='s'))
+        sums_ascending = series.rolling(f'{window_size}s').sum()
 
         # Reverse rolling sum
         series_rev = series[::-1]
-        series_rev.index = [pd.Timestamp(base_dt.shift(seconds=-s).datetime) for s in base_index_seconds[::-1]]
-        sums_descending = series_rev.rolling(window=str(window_size) + 's').sum()[::-1]
+        series_rev.index = pd.DatetimeIndex(base_dt + pd.to_timedelta(base_index_seconds[::-1], unit='s'))
+        sums_descending = series_rev.rolling(f'{window_size}s').sum()[::-1]
     else:
         # uses fixed window size
         sums_ascending = series.rolling(window=window_size, min_periods=1).sum()
@@ -54,18 +53,18 @@ class ActivityFeatures(object):
         """
         turns_stream_df = (
             lat_long_to_x_y(lat_long_stream_df)
-                .pipe(smooth, smooth_colnames=['x', 'y'], window_size=window_size, use_index=True)
-                .pipe(derivative, derivative_colnames=['x_smooth', 'y_smooth'])
-                .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
-                .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
+            .pipe(smooth, smooth_colnames=['x', 'y'], window_size=window_size, use_index=True)
+            .pipe(derivative, derivative_colnames=['x_smooth', 'y_smooth'])
+            .pipe(rolling_similarity, cosine_similarity, 'dx_smooth_dt', 'dy_smooth_dt')
+            .pipe(cosine_to_deviation, 'cosine_similarity_dx_smooth_dt_dy_smooth_dt')
         )
 
         try:
             return _moving_sum_filter(
                 turns_stream_df.deviation.fillna(0), use_index=True, window_size=window_size, threshold=noise_threshold
             ).sum()
-        except ValueError:
-            logging.warning('Failed to compute sum of turns, returning NaN')
+        except ValueError as e:
+            logging.warning(f'Failed to compute sum of turns, returning NaN, {e}')
             return np.nan
 
     @staticmethod
