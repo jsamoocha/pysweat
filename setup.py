@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pysweat',
-    version='0.1.dev3',
+    version='0.1.dev4',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=[
         'pymongo>=3',
